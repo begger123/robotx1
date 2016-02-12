@@ -1,0 +1,134 @@
+<head>
+    <script src="https://npmcdn.com/draggabilly@2.1/dist/draggabilly.pkgd.min.js"></script>
+    <style>
+      #page {
+          display: table;
+          margin: 50px auto 50px auto;
+      }
+      #speedctrl-box {
+          width: 600px;
+          height: 600px;
+          background-color: #ffd27f;
+          padding: 20px;
+          display: table-cell;
+          text-align: center;
+          vertical-align: middle;
+      }
+      #speedctrl {
+          display: inline-block;
+          width: 50px;
+          height: 50px;
+          background-color: #b27300;
+          border: 4px solid #e59400;
+          border-radius: 4px;
+          padding: 50px;
+          text-align: center;
+          line-height: 50px;
+          color: white;
+          font-size: 50px;
+      }
+      #data-box-p {
+          display: table-row;
+      }
+      #data-box {
+          display: table-cell;
+          padding-top: 15px;
+      }
+      #data-box span {
+          display: block;
+          border-left: 4px solid yellow;
+          margin-left: 10px;
+          padding-left: 10px;
+      }
+      #stop-button {
+          margin-top: 30px;
+          background-color: #660000;
+          border: 4px solid #ff0000;
+          border-radius: 4px;
+          color: white;
+          text-align: center;
+          font-size: 40px;
+          height: 70px;
+          line-height: 70px;
+      }
+    </style>
+
+    <!-- Disable zoom so controls don't get "lost" accidentaly on phone. -->
+    <meta content='width=device-width, initial-scale=0.6, maximum-scale=0.6, user-scalable=0' name='viewport' />
+</head>
+<body>
+    <div id="page">
+        <div id="speedctrl-box">
+            <div id="speedctrl">✺</div>
+        </div>
+        <div id="data-box-p">
+            <div id="data-box">
+                <b>Battery</b>
+                <span id="battery-status"></span>
+                <div id="stop-button">STOP</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function sendSpeed(left, right) {
+            if (window.request) window.request.abort();
+            window.request = new XMLHttpRequest();
+            request.open('GET', '/speed/' + left + ',' + right, true);
+            request.send();
+        }
+
+        var speedDraggable = new Draggabilly('#speedctrl', {
+            containment: '#speedctrl-box'
+        });
+        speedDraggable.on('dragMove', function(evt) {
+            var maxSpeed = 150;
+
+            console.log(speedDraggable.position.x, speedDraggable.position.y);
+            x = speedDraggable.position.x / 241.0;
+            y = -speedDraggable.position.y / 221.0;
+            if (x < -1.0 || x > 1.0 || y < -1.0 || y > 1.0) {
+                console.log('Invalid speed!');
+            } else {
+                if (Math.abs(x) < 0.05) x = 0;
+                var left = y;
+                var right = y;
+                if (x < 0) {
+                    left = left * (1 + x);
+                } else {
+                    right = right * (1 - x);
+                }
+                left = Math.round(left * maxSpeed);
+                right = Math.round(right * maxSpeed);
+                console.log('set: ', left, " ", right);
+                sendSpeed(left, right);
+            }
+        });
+        speedDraggable.on('dragEnd', function() {
+          Object.assign(speedDraggable.position, speedDraggable.startPosition);
+          speedDraggable.setLeftTop();
+          console.log('Resetting speed.');
+          sendSpeed(0, 0);
+        });
+
+        document.getElementById('stop-button').addEventListener('click', function() {
+          sendSpeed(0, 0);
+        });
+
+        var batteryNode = document.getElementById('battery-status');
+        function updateBatteryStatus() {
+            fetch('/battery').then(function(response) {
+                if (response.status == 200) {
+                    response.text().then(function(text) {
+                        batteryNode.innerHTML = text.replace('\n', '<br>');
+                    });
+                } else {
+                    batteryNode.innerText = 'ERROR';
+                }
+            }).catch(function(err) {
+                batteryNode.innerText = 'ERROR';
+            });
+        }
+        updateBatteryStatus();
+        //window.setInterval(updateBatteryStatus, 3000);
+    </script>
+</body>

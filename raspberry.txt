@@ -1,0 +1,24 @@
+ - Install raspbian lite.
+     https://www.raspberrypi.org/documentation/installation/installing-images/linux.md
+
+ - connect usb power + ethernet to dhcp router (+ optional screen to see boot process),
+   look up IP address (hostname "raspberrypi") in router and ssh with user
+   "pi" and password "raspberry".
+
+ - install "vim" with apt-get.
+
+ - setup wifi following http://www.howtogeek.com/167425/how-to-setup-wi-fi-on-your-raspberry-pi-via-the-command-line/
+   /etc/network/interfaces is fine:
+     allow-hotplug wlan0
+     iface wlan0 inet manual
+     wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+     iface wlan0 inet6 auto
+   edit /etc/wpa_supplicant/wpa_supplicant.conf, add ssid + psk + scan_ssid=1
+   sudo ifdown wlan0; sudo ifup wlan0
+
+ - "sudo raspi-config" > 9 Advanced Options > A8 disable messages on serial > restart
+
+ - install minicom. then the following can be used:
+     sudo minicom -b 9600 -o -D /dev/ttyAMA0
+   note that for connecting serial to 5V lines (eg Arduino Mega) a voltage
+   divider is needed, eg. 1.2K + 2.2K resistors in series.
