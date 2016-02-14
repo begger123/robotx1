@@ -13,14 +13,16 @@ int s2;  // in mode 4, speed of motor 2.
 
 void setup() {
   Serial.begin(9600);
+  Serial.println("Hi!");
   Serial1.begin(9600);
   Serial2.begin(9600);
 
   motorL = &Serial1;
   motorR = &Serial2;
   SetupServo(motorL);
+  Serial.println("Left servo reset.");
   SetupServo(motorR);
-  Serial.println("Servos reset.");
+  Serial.println("Right servo reset.");
   
   input = "";
   m = 0;
@@ -192,7 +194,7 @@ void SetupServo(HardwareSerial* s) {
   // Speed config:
   SendCmd(s, "S0");
   SendCmd(s, "M250");  // (max. 255)
-  SendCmd(s, "D10");
+  SendCmd(s, "D30");
 
   // Encoder:
   SendCmd(s, "P0");
