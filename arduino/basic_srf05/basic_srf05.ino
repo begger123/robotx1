@@ -13,9 +13,9 @@ volatile long endTime = 0;
 
 void loop() {
   requestUltrasound();
-  long duration = pulseIn(dataPin, HIGH, 300000);
 
   // Sync:
+  //   long duration = pulseIn(dataPin, HIGH, 500000);
   //   float dist = ultrasoundTimeToMeters(duration);
 
   // Async (interrupts-based):
