@@ -1,9 +1,13 @@
-const int controlPin = 9;
+const int controlPin1 = 8;
+const int controlPin2 = 9;
+// Both HY-SRF05 are connected to the same interrupt-enabled pin, protecting them
+// from each other using Schottky diodes.
 const int dataPin = 3;
 
 void setup() {
   Serial.begin(9600);
-  pinMode(controlPin, OUTPUT);
+  pinMode(controlPin1, OUTPUT);
+  pinMode(controlPin2, OUTPUT);
   pinMode(dataPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(dataPin), ultrasoundISR, CHANGE);
 }
@@ -12,27 +16,28 @@ volatile long startTime = 0;
 volatile long endTime = 0;
 
 void loop() {
-  requestUltrasound();
+  printUltrasound("front", controlPin1);
+  delay(100);
+  printUltrasound("front down", controlPin2);
+  delay(100);
+}
 
-  // Sync:
-  //   long duration = pulseIn(dataPin, HIGH, 500000);
-  //   float dist = ultrasoundTimeToMeters(duration);
+void printUltrasound(const String& sensor_name, const int pin) {
+  requestUltrasound(pin);
 
-  // Async (interrupts-based):
   while (endTime == 0);
   float dist = ultrasoundTimeToMeters(endTime - startTime);
-
   if (dist > 0) {
-    Serial.println("Duration: " + String(dist) + "m.");
+    Serial.println("Duration [" + sensor_name + "]: " + String(dist) + "m.");
   }
 }
 
-void requestUltrasound() {
-  digitalWrite(controlPin, LOW);
+void requestUltrasound(const int pin) {
+  digitalWrite(pin, LOW);
   delayMicroseconds(2);
-  digitalWrite(controlPin, HIGH);
+  digitalWrite(pin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(controlPin, LOW);
+  digitalWrite(pin, LOW);
   delayMicroseconds(10);
   startTime = endTime = 0;
 }
